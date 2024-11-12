@@ -33,9 +33,12 @@ export class AppController {
     try {
       const file_type = file.originalname.split('.')[1];
 
-      const bucket = await fileUploadV3({ file, fileName: file.originalname });
+      // const bucket = await fileUploadV3({ file, fileName: file.originalname });
       // return this.appService.extractTextFromPDF(file.path, 'pdf');
-      return this.textractService.analyzeDocumentFromS3(bucket.key);
+      return this.textractService.analyzeDocumentFromS3(
+        'bucket.key',
+        file.path,
+      );
     } catch (error) {
       throw error;
     }

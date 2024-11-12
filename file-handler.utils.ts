@@ -7,8 +7,6 @@ export const fileUploadV3 = async (options: {
   fileName: string;
 }) => {
   try {
-    console.log(getS3V3());
-
     const s3 = new S3Client(getS3V3());
     const filename = options.file.originalname.split('.')[1];
     const Key = `urbany_${randomUUID()}${filename}`;
@@ -20,12 +18,6 @@ export const fileUploadV3 = async (options: {
         Key,
         Body: options.file.buffer,
       },
-    });
-
-    console.log('options', {
-      Bucket: process.env.BUCKET_NAME,
-      Key,
-      Body: options.file.buffer,
     });
     const response = await command.done();
     console.log(response);

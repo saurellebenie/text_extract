@@ -1,10 +1,16 @@
 import { Injectable } from '@nestjs/common';
+
 import {
   TextractClient,
+  AnalyzeExpenseCommand,
+  AnalyzeExpenseCommandInput,
+  AnalyzeExpenseCommandOutput,
   AnalyzeDocumentCommand,
   FeatureType,
+  UnsupportedDocumentException,
 } from '@aws-sdk/client-textract';
 import * as AWS from 'aws-sdk';
+import * as fs from 'fs/promises';
 
 @Injectable()
 export class TextractService {
@@ -22,28 +28,46 @@ export class TextractService {
     });
   }
 
-  async analyzeDocumentFromS3(documentName: string) {
+  async analyzeDocumentFromS3(documentName: string, file_path: any) {
     try {
-      const params = {
+      // const params = {
+      //   Document: {
+      //     S3Object: {
+      //       Bucket: process.env.BUCKET_NAME,
+      //       Name: documentName,
+      //     },
+      //   },
+      //   FeatureTypes: [
+      //     FeatureType.TABLES,
+      //     FeatureType.FORMS,
+      //     FeatureType.SIGNATURES,
+      //   ],
+      // };
+
+      const recipe = await fs.readFile('./uploads/BdirEX0.png', 'base64');
+
+      const input: AnalyzeExpenseCommandInput = {
         Document: {
-          S3Object: {
-            Bucket: process.env.BUCKET_NAME,
-            Name: documentName,
-          },
+          Bytes: Buffer.from(recipe, 'base64'),
         },
-        FeatureTypes: [
-          FeatureType.TABLES,
-          FeatureType.FORMS,
-          FeatureType.SIGNATURES,
-        ],
       };
 
-      const command = new AnalyzeDocumentCommand(params);
+      const command = new AnalyzeExpenseCommand(input);
+      console.log(command.input);
 
       const response = await this.textract.send(command);
-      console.log(response);
+
+      // refuse pdf
+      console.log(response.ExpenseDocuments);
+
+      return response.ExpenseDocuments;
     } catch (error) {
-      throw error;
+      if (error instanceof UnsupportedDocumentException) {
+        console.error('Unsupported document format:', error);
+        // Handle the error, e.g., return an error message or retry with different parameters.
+      } else {
+        throw error;
+      }
     }
   }
 
